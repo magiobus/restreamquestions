@@ -1,11 +1,14 @@
 import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup} from "@chakra-ui/core";
 import {useState, useEffect} from 'react';
+import moment from 'moment'
 
 
 const Question = props => {
   const [editText, setEditText]= useState(false)
   const [questionText, setQuestionText] = useState(props.question.text)
+  let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a");
 
+  console.log("questionTimestamp =>", questionTimestamp)
   const onChangeText = event => {
     setQuestionText(event)
   }
@@ -16,7 +19,7 @@ const Question = props => {
 
   const handleAnswerSubmit = (event) => {
     event.preventDefault
-    alert(`TODO: Takes text: ${questionText} \n starttime, endtime, duration and url of video and post it to ${props.apiValue}`)
+    alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
   }
 
   useEffect(() => {
@@ -45,13 +48,16 @@ const Question = props => {
          )}
 
           {!editText && (
+            <>
             <Text width="80%" p={2}  onClick={toggleEdit}>{questionText}</Text>
+            <Text pl={2}>Received at: {questionTimestamp}</Text>
+            </>
           )}
 
          </Box>
          <Flex direction="row" align="flex-end">
            <Box mt={0}>
-             <Button variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>Answer</Button>
+             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>Answer</Button>
            </Box>
          </Flex>
        </Box>

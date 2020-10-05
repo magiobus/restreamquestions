@@ -2,7 +2,7 @@ import Layout from '../components/layout'
 import React, { useEffect, useState} from 'react'
 import Router, { useRouter } from 'next/router'
 import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup, TabPanel} from "@chakra-ui/core";
-import _ from 'lodash'
+import moment from 'moment'
 
 import QuestionsWrapper from '../components/questionswrapper'
 
@@ -13,7 +13,8 @@ const SaveQuestions = props => {
   const [error, setError] = useState(false)
   const [connected, setConnected] = useState(false)
   const [editApi, setEditApi] = useState(true)
-  const {isAuthenticated, token, questions, setQuestions, logout, apiValue, setApiValue} = useAuth()
+  const {isAuthenticated, token, questions, setQuestions, logout, apiValue, setApiValue, streamTimeStampDate, setStreamTimeStampDate} = useAuth()
+
 
   //Connection to WEBSOCKET
   useEffect(()=> {
@@ -25,9 +26,21 @@ const SaveQuestions = props => {
     if(token && token.accessToken){
       const accessToken = token.accessToken
         // OAuth `bearer` token
-      const connection = new WebSocket(`wss://chat.api.restream.io/ws?accessToken=${accessToken}`);
+      const chatConnection = new WebSocket(`wss://chat.api.restream.io/ws?accessToken=${accessToken}`);
+      const streamConnection = new WebSocket(`wss://streaming.api.restream.io/ws?accessToken=${accessToken}`);
 
-      connection.onmessage = (message) => {
+      streamConnection.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        if(data.action === 'updateIncoming'){
+          setStreamTimeStampDate(moment.unix(data.createdAt).format("MM/DD/YYYY h:mm:ss a"))
+          console.log("UPDATE INCOMING! =>", data)
+        } else if (data.action === 'updateStatuses') {
+          console.log("UPDATE STATUSES! =>", data)
+        }
+      };
+
+
+      chatConnection.onmessage = (message) => {
           const data = JSON.parse(message.data);
           if(data.action === 'connection_info'){
             setConnected(true)
@@ -38,7 +51,7 @@ const SaveQuestions = props => {
           }
       };
 
-      connection.onerror = (error) => { setError(true) }; //TODO: Refresh Token here
+      chatConnection.onerror = (error) => { setError(true) }; //TODO: Refresh Token here
     }
   }
 
@@ -53,34 +66,32 @@ const SaveQuestions = props => {
 
   return (
     <Layout>
-      {editApi && (
-        <InputGroup mb={2}  size="md">
-         <Input
-           pr="4.5rem"
-           type="text"
-           placeholder="YOUR API URL HERE..."
-           value={apiValue}
-           onChange={(event) => {onChangeApi(event.target.value)}}
-         />
-         <InputRightElement width="4.5rem">
-           <Button h="1.75rem" size="sm" onClick={toggleChangeApi}>
-             Done
-           </Button>
-         </InputRightElement>
-       </InputGroup>
-      )}
-
-      {!editApi && (
-        <Text mb={2} onClick={toggleChangeApi} >API URL: {apiValue}</Text>
-      )}
-
-
-      {error && <p>Error connecting to chat</p>}
+          {error && <p>Error connecting to chat</p>}
 
 
       {(isAuthenticated && connected) ? (
         <>
-        <Text mb={5} p={2} color="pink">Connected to Restream Chat</Text>
+        <Text mb={5} p={2} color="pink">Connected to Restream Chat.<b> Started at: {streamTimeStampDate}</b></Text>
+        {editApi && (
+          <InputGroup mb={2}  size="md">
+           <Input
+             pr="4.5rem"
+             type="text"
+             placeholder="YOUR API URL HERE..."
+             value={apiValue}
+             onChange={(event) => {onChangeApi(event.target.value)}}
+           />
+           <InputRightElement width="4.5rem">
+             <Button h="1.75rem" size="sm" onClick={toggleChangeApi}>
+               Done
+             </Button>
+           </InputRightElement>
+         </InputGroup>
+        )}
+
+        {!editApi && (
+          <Text mb={2} onClick={toggleChangeApi} >API URL: {apiValue}</Text>
+        )}
         <Flex align="center" bg="gray.50"  border="1px" borderRadius={8} borderColor="gray.200" direction="row" >
           <Box flex="1" textAlign="left" px={5} py={2} overflow-Y="scroll" >
               {questions.length>0 ? (
