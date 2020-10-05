@@ -1,1 +1,2 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+Simple App for restream.io
+It loads the chat and you can answer questions.
