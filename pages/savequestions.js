@@ -7,10 +7,8 @@ import {useAuth} from '../lib/auth'
 const SaveQuestions = props => {
   const {isAuthenticated, logout} = useAuth()
 
-  useEffect(() => {
-    console.log("useEffect... save questions")
-
-  }, [isAuthenticated])
+  // useEffect(() => {
+  // }, [isAuthenticated])
 
   return (
     <Layout>
