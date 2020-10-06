@@ -1,6 +1,7 @@
 import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup} from "@chakra-ui/core";
 import {useState, useEffect} from 'react';
 import moment from 'moment'
+import ms from 'ms'
 
 
 
@@ -9,7 +10,12 @@ const Question = props => {
   const [questionText, setQuestionText] = useState(props.question.text)
   const [isAnswering, setIsAnswering] = useState(false)
   const [isAnswered, setIsAnswered] = useState(false)
-  let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a");
+
+  const [answerTimeStamp, setAnswerTimeStamp] = useState(0) //when I pressed the answer button
+  const [answeringDuration, setAnsweringDuration] = useState(0)
+
+  let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a"); //question received at
+  let streamTimeStampDate = props.streamTimeStampDate //stream started at
 
   const onChangeText = event => {
     setQuestionText(event)
@@ -21,12 +27,17 @@ const Question = props => {
 
   const handleAnswerSubmit = () => {
     setIsAnswering(true)
-    let streamTimeStampDate = props.streamTimeStampDate //stream started at
-    let answerTimeStamp = moment().format("MM/DD/YYYY h:mm:ss a") //when I pressed the answer button
+    setAnswerTimeStamp(moment().format("MM/DD/YYYY h:mm:ss a"))//when I pressed the answer button
 
     console.log("stream started at =>" ,streamTimeStampDate)
     console.log("Message received at =>", questionTimestamp)
-    console.log("You press the answer button at =>", answerTimeStamp)
+
+    let localCounter = 0
+    setInterval(() => {
+      localCounter += 1000
+      setAnsweringDuration(localCounter)
+    }, 1000);
+
     console.log("Current Answering time.... =>" )
     // alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
   }
@@ -34,9 +45,12 @@ const Question = props => {
   const handleFinishSubmit = () => {
     setIsAnswering(false)
     let finishTimeStamp = moment().format("MM/DD/YYYY h:mm:ss a") //when I pressed the answer button
-    console.log("Finished!!! AT =>", finishTimeStamp)
-    //Take Data and send it to API
+    console.log("You press the answer button at =>", answerTimeStamp)
+    console.log("You finish answering at =>", finishTimeStamp)
     setIsAnswered(true)
+    console.log("Answered in =>", answeringDuration)
+
+    //Take Data and send it to API
   }
 
   useEffect(() => {
@@ -76,7 +90,7 @@ const Question = props => {
            <Box mt={0}>
            {isAnswering  && (
              <>
-               <Text ml={2}>Answering...</Text>
+               <Text ml={2}>Answering: {ms(answeringDuration)}</Text>
                <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleFinishSubmit(event)}}>
                Finish
                </Button>
