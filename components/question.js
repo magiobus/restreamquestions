@@ -3,12 +3,13 @@ import {useState, useEffect} from 'react';
 import moment from 'moment'
 
 
+
 const Question = props => {
   const [editText, setEditText]= useState(false)
   const [questionText, setQuestionText] = useState(props.question.text)
+  const [isAnswering, setIsAnswering] = useState(false)
   let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a");
 
-  console.log("questionTimestamp =>", questionTimestamp)
   const onChangeText = event => {
     setQuestionText(event)
   }
@@ -17,9 +18,16 @@ const Question = props => {
     setEditText(!editText)
   }
 
-  const handleAnswerSubmit = (event) => {
-    event.preventDefault
-    alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
+  const handleAnswerSubmit = () => {
+    setIsAnswering(true)
+    let streamTimeStampDate = props.streamTimeStampDate //stream started at
+    let answerTimeStamp = moment().format("MM/DD/YYYY h:mm:ss a") //when I pressed the answer button
+
+    console.log("stream started at =>" ,streamTimeStampDate)
+    console.log("Message received at =>", questionTimestamp)
+    console.log("You press the answer button at =>", answerTimeStamp)
+    console.log("Current Answering time.... =>" )
+    // alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
   }
 
   useEffect(() => {
@@ -57,7 +65,13 @@ const Question = props => {
          </Box>
          <Flex direction="row" align="flex-end">
            <Box mt={0}>
-             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>Answer</Button>
+           {isAnswering ? (
+             <Text ml={2}>Answering...</Text>
+           ) : (
+             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>
+             Answer
+             </Button>
+           ) }
            </Box>
          </Flex>
        </Box>

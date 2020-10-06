@@ -33,9 +33,9 @@ const SaveQuestions = props => {
         const data = JSON.parse(message.data);
         if(data.action === 'updateIncoming'){
           setStreamTimeStampDate(moment.unix(data.createdAt).format("MM/DD/YYYY h:mm:ss a"))
-          console.log("UPDATE INCOMING! =>", data)
+          // console.log("UPDATE INCOMING! =>", data)
         } else if (data.action === 'updateStatuses') {
-          console.log("UPDATE STATUSES! =>", data)
+          // console.log("UPDATE STATUSES! =>", data)
         }
       };
 
@@ -46,8 +46,12 @@ const SaveQuestions = props => {
             setConnected(true)
             console.log("CONNECTION INFO =>", data)
           } else if (data.action === 'reply_created') {
-            console.log("NEW QUESTION ADDED =>", data)
-            setQuestions(questions => [...questions, {"text": data.payload.text, "timestamp": data.timestamp, "source": data.payload.connectionIdentifiers[0]}])
+            console.log("NEW QUESTION ME ADDED =>", data)
+            setQuestions(questions => [...questions, {"text": data.payload.text, "timestamp": data.timestamp, "source": data.payload.connectionIdentifiers[0], "author": {"displayName": "Me"}}])
+          } else if(data.action === 'event'){
+            //These are the messages of chats people
+            console.log("NEW QUESTION From Users ADDED =>", data)
+            setQuestions(questions => [...questions, {"text": data.payload.eventPayload.text, "timestamp": data.timestamp, "source": data.payload.eventIdentifier, "author": data.payload.eventPayload.author}])
           }
       };
 
@@ -95,7 +99,7 @@ const SaveQuestions = props => {
         <Flex align="center" bg="gray.50"  border="1px" borderRadius={8} borderColor="gray.200" direction="row" >
           <Box flex="1" textAlign="left" px={5} py={2} overflow-Y="scroll" >
               {questions.length>0 ? (
-                <QuestionsWrapper questions={questions} apiValue={apiValue}/>
+                <QuestionsWrapper questions={questions} apiValue={apiValue} streamTimeStampDate={streamTimeStampDate} />
               ): (
                 <Text mb={5} p={2} color="pink">There's no questions yet</Text>
               )}
