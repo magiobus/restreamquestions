@@ -29,17 +29,11 @@ const Question = props => {
     setIsAnswering(true)
     setAnswerTimeStamp(moment().format("MM/DD/YYYY h:mm:ss a"))//when I pressed the answer button
 
-    console.log("stream started at =>" ,streamTimeStampDate)
-    console.log("Message received at =>", questionTimestamp)
-
     let localCounter = 0
     setInterval(() => {
       localCounter += 1000
       setAnsweringDuration(localCounter)
     }, 1000);
-
-    console.log("Current Answering time.... =>" )
-    // alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
   }
 
   const handleFinishSubmit = () => {
@@ -49,6 +43,25 @@ const Question = props => {
     console.log("You finish answering at =>", finishTimeStamp)
     setIsAnswered(true)
     console.log("Answered in =>", answeringDuration)
+
+
+    let streamStartTime = moment(streamTimeStampDate)
+    let answerStartTime = moment(answerTimeStamp)
+    let answerEndTime = moment(finishTimeStamp)
+
+
+    let questionStartsAt = moment.duration(answerStartTime.diff(streamStartTime));
+    let questionEndsAt = moment.duration(answerEndTime.diff(streamStartTime));
+
+    let dataToPost = {
+      "text": questionText,
+      "questionStartsAt": questionStartsAt.as('milliseconds'),
+      "questionEndsAt": questionEndsAt.as('milliseconds'),
+      "answerTime": answeringDuration
+    }
+
+    console.log("data to post =>", dataToPost)
+
 
     //Take Data and send it to API
   }
