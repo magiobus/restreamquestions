@@ -8,6 +8,7 @@ const Question = props => {
   const [editText, setEditText]= useState(false)
   const [questionText, setQuestionText] = useState(props.question.text)
   const [isAnswering, setIsAnswering] = useState(false)
+  const [isAnswered, setIsAnswered] = useState(false)
   let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a");
 
   const onChangeText = event => {
@@ -28,6 +29,14 @@ const Question = props => {
     console.log("You press the answer button at =>", answerTimeStamp)
     console.log("Current Answering time.... =>" )
     // alert(`TODO: \n text: ${questionText} \n questionTimestamp ${questionTimestamp}, \n endtime, duration and url of video and post it to ${props.apiValue}`)
+  }
+
+  const handleFinishSubmit = () => {
+    setIsAnswering(false)
+    let finishTimeStamp = moment().format("MM/DD/YYYY h:mm:ss a") //when I pressed the answer button
+    console.log("Finished!!! AT =>", finishTimeStamp)
+    //Take Data and send it to API
+    setIsAnswered(true)
   }
 
   useEffect(() => {
@@ -65,13 +74,23 @@ const Question = props => {
          </Box>
          <Flex direction="row" align="flex-end">
            <Box mt={0}>
-           {isAnswering ? (
-             <Text ml={2}>Answering...</Text>
-           ) : (
+           {isAnswering  && (
+             <>
+               <Text ml={2}>Answering...</Text>
+               <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleFinishSubmit(event)}}>
+               Finish
+               </Button>
+             </>
+           )}
+
+           {(!isAnswering && !isAnswered) && (
              <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>
-             Answer
+              Answer
              </Button>
-           ) }
+           )}
+
+           {isAnswered && ( <Text ml={2}>Answered :) </Text> )}
+
            </Box>
          </Flex>
        </Box>
