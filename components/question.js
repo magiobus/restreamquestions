@@ -13,8 +13,7 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
   const { isOpen, onOpen, onClose } = useDisclosure(); 
   const [answerInModal, setAnswerInModal] = useState(null);
   const [answeringDuration, setAnsweringDuration] = useState(0) //counter
-
-  const [editText, setEditText]= useState(false)
+  const [toggleEditQuestion, setToggleEditQuestion] = useState(false)
   const [questionText, setQuestionText] = useState(question.text)
 
   let questionTimestamp = moment.unix(question.timestamp).format("MM/DD/YYYY h:mm:ss a");
@@ -28,6 +27,7 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
     matchedQuestion.receivedAt =  questionTimestamp
     matchedQuestion.answerStarts = moment().format("MM/DD/YYYY h:mm:ss a")
     matchedQuestion.streamStartedAt = streamStartTimeStamp
+    matchedQuestion.text = questionText
     setAnswerInModal(matchedQuestion) 
 
     //starts counting
@@ -37,8 +37,6 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
       localCounter += 1000
       setAnsweringDuration(localCounter)
     }, 1000);
-
-    console.log("matchedQuestion =>", matchedQuestion)
 
     //open modal 
     onOpen(true)
@@ -90,7 +88,16 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
          <Box mt="1" fontWeight="semibold" as="h4" lineHeight="tight">
             <>
               <Flex direction="column" align="flex-start">
-                <Text px={2} py={1}>{question.text}</Text>
+                {toggleEditQuestion ? (
+                  <InputGroup size="md">
+                  <Input pr="4.5rem" type="text" value={questionText} onChange={e => {setQuestionText(e.target.value)}}/>
+                  <InputRightElement width="4.5rem">
+                  <Button h="1.75rem" size="sm" onClick={() => {setToggleEditQuestion(false)}}>Done</Button>
+                  </InputRightElement>
+                  </InputGroup>
+                ): (
+                  <Text px={2} py={1} onClick={() => {setToggleEditQuestion(true)}}>{questionText}</Text>
+                )}
                 <Text px={2} py={1} my={2} as="sub">Received at: {questionTimestamp}</Text>
               </Flex>
             </>
