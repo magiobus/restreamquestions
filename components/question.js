@@ -1,128 +1,131 @@
-import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup} from "@chakra-ui/core";
+import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup, Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton, useDisclosure} from "@chakra-ui/core";
 import {useState, useEffect} from 'react';
 import moment from 'moment'
 import ms from 'ms'
 
 
+const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => {
+  const { isOpen, onOpen, onClose } = useDisclosure(); 
+  const [answerInModal, setAnswerInModal] = useState(null);
+  const [answeringDuration, setAnsweringDuration] = useState(0) //counter
 
-const Question = props => {
   const [editText, setEditText]= useState(false)
-  const [questionText, setQuestionText] = useState(props.question.text)
-  const [isAnswering, setIsAnswering] = useState(false)
-  const [isAnswered, setIsAnswered] = useState(false)
+  const [questionText, setQuestionText] = useState(question.text)
 
-  const [answerTimeStamp, setAnswerTimeStamp] = useState(0) //when I pressed the answer button
-  const [answeringDuration, setAnsweringDuration] = useState(0)
 
-  let questionTimestamp = moment.unix(props.question.timestamp).format("MM/DD/YYYY h:mm:ss a"); //question received at
-  let streamTimeStampDate = props.streamTimeStampDate //stream started at
+  let questionTimestamp = moment.unix(question.timestamp).format("MM/DD/YYYY h:mm:ss a");
 
-  const onChangeText = event => {
-    setQuestionText(event)
-  }
+  // HANDLERS HANDLERS
+  const handleAnswerSubmit = (questionId) => {
 
-  const toggleEdit = () => {
-    setEditText(!editText)
-  }
+    let _questions = [...questions]
 
-  const handleAnswerSubmit = () => {
-    setIsAnswering(true)
-    setAnswerTimeStamp(moment().format("MM/DD/YYYY h:mm:ss a"))//when I pressed the answer button
+    //Get Clicked question and move it to setAnswerInModal with timestamps
+    let matchedQuestion = _questions.find(_question => { return _question.id === questionId })
+    matchedQuestion.receivedAt =  questionTimestamp
+    matchedQuestion.answerStarts = moment().format("MM/DD/YYYY h:mm:ss a")
+    matchedQuestion.streamStartedAt = streamStartTimeStamp
+    setAnswerInModal(matchedQuestion) 
 
+    //starts counting
     let localCounter = 0
+    setAnsweringDuration(0)
     setInterval(() => {
       localCounter += 1000
       setAnsweringDuration(localCounter)
     }, 1000);
+
+    console.log("matchedQuestion =>", matchedQuestion)
+
+    //open modal 
+    onOpen(true)
+
+    // //Quit clicked question from questions context
+    // let newQuestions = questions.filter(question => { return question.id !== questionId })
+    // setQuestions(newQuestions)
   }
 
-  const handleFinishSubmit = () => {
-    setIsAnswering(false)
-    let finishTimeStamp = moment().format("MM/DD/YYYY h:mm:ss a") //when I pressed the answer button
-    console.log("You press the answer button at =>", answerTimeStamp)
-    console.log("You finish answering at =>", finishTimeStamp)
-    setIsAnswered(true)
-    console.log("Answered in =>", answeringDuration)
+  const handleFinishAnswer = () => {
+    console.log("handleFinishAnswer!!!")
+    let answeredQuestion = {...answerInModal}
+    answeredQuestion.answerEnds = moment().format("MM/DD/YYYY h:mm:ss a")
+    console.log(" =>", answeredQuestion)
 
-
-    let streamStartTime = moment(streamTimeStampDate)
-    let answerStartTime = moment(answerTimeStamp)
-    let answerEndTime = moment(finishTimeStamp)
-
+    let streamStartTime = moment(answeredQuestion.streamStartedAt)
+    let answerStartTime = moment(answeredQuestion.answerStarts)
+    let answerEndTime = moment(answeredQuestion.answerEnds)
 
     let questionStartsAt = moment.duration(answerStartTime.diff(streamStartTime));
     let questionEndsAt = moment.duration(answerEndTime.diff(streamStartTime));
 
-    let dataToPost = {
-      "text": questionText,
-      "questionStartsAt": questionStartsAt.as('milliseconds'),
-      "questionEndsAt": questionEndsAt.as('milliseconds'),
-      "answerTime": answeringDuration
+    //DATA TO SEND TO API 
+    let data = {
+      text: answeredQuestion.text, 
+      startsAt: questionStartsAt.as('milliseconds'), 
+      endsAt: questionEndsAt.as('milliseconds'),
+      duration: answeringDuration
     }
 
-    console.log("data to post =>", dataToPost)
+    console.log("DATA TO API =>", data)
 
-
-    //Take Data and send it to API
+    //SEND TO API HERE!
+    //UPDATE QUESTIONS ON CONTEXT
+    onClose(true)    
   }
 
-  useEffect(() => {
-  }, [editText])
-
-  return (
-    <Flex width="full" >
-       <Box px={2} pb={2} my={2}  border="1px" borderRadius={8} borderColor="gray.200" width="100%" boxShadow="lg">
+  return ( 
+    <>
+    <Flex width={["100%"]} >
+       <Box px={2} pb={2} my={2} mx={0} bg="white" border="1px" borderRadius={8} borderColor="gray.300" width="100%" boxShadow="lg">
          <Box mt="1" fontWeight="semibold" as="h4" lineHeight="tight">
-
-         {editText && (
-           <InputGroup size="md">
-            <Input
-              pr="4.5rem"
-              type="text"
-              placeholder="Enter password"
-              value={questionText}
-              onChange={(event) => {onChangeText(event.target.value)}}
-            />
-            <InputRightElement width="4.5rem">
-              <Button h="1.75rem" size="sm" onClick={toggleEdit}>
-                Done
-              </Button>
-            </InputRightElement>
-          </InputGroup>
-         )}
-
-          {!editText && (
             <>
-            <Text width="80%" p={2}  onClick={toggleEdit}>{questionText}</Text>
-            <Text pl={2}>Received at: {questionTimestamp}</Text>
+              <Flex direction="column" align="flex-start">
+                <Text px={2} py={1}>{question.text}</Text>
+                <Text px={2} py={1} my={2} as="sub">Received at: {questionTimestamp}</Text>
+              </Flex>
             </>
-          )}
-
          </Box>
+
+
          <Flex direction="row" align="flex-end">
            <Box mt={0}>
-           {isAnswering  && (
-             <>
-               <Text ml={2}>Answering: {ms(answeringDuration)}</Text>
-               <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleFinishSubmit(event)}}>
-               Finish
-               </Button>
-             </>
-           )}
-
-           {(!isAnswering && !isAnswered) && (
-             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={(event) => {handleAnswerSubmit(event)}}>
+             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={() => {handleAnswerSubmit(question.id)}}>
               Answer
              </Button>
-           )}
-
-           {isAnswered && ( <Text ml={2}>Answered :) </Text> )}
-
            </Box>
          </Flex>
        </Box>
      </Flex>
-  )
-}
 
+
+    {answerInModal && (
+        <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalBody pb={6}>
+             <Box mt="1" fontWeight="semibold" as="h4" lineHeight="tight">
+              <Flex direction="column" align="flex-start">
+                <Text px={0} py={1} as="i">Answering: {answerInModal.text}</Text>
+                <Text px={0} py={1} as="i">Started At: {answerInModal.answerStarts}</Text>
+                <Text>Elapsed Time: {ms(answeringDuration)}</Text>
+              </Flex>
+            </Box> 
+          </ModalBody>
+          <ModalFooter>
+            <Button variantColor="blue" mr={3} onClick={() => {handleFinishAnswer()}}>
+              Finish
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    )}
+     </>
+   )
+}
+ 
 export default Question;

@@ -2,6 +2,8 @@
 
 import Head from 'next/head';
 import Header from '../components/header';
+import {Flex} from "@chakra-ui/core";
+
 
 const Layout = ({ children }) => {
   return (
@@ -13,7 +15,9 @@ const Layout = ({ children }) => {
 
       <Header />
 
-      <main className="container">{children}</main>
+      <flex width="100%" align="center" >
+        {children}
+      </flex>
 
       <style jsx global>{`
         *,
@@ -28,11 +32,7 @@ const Layout = ({ children }) => {
             'Helvetica Neue', Arial, Noto Sans, sans-serif, 'Apple Color Emoji',
             'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
         }
-        .container {
-          max-width: 42rem;
-          margin: 0 auto;
-          padding: 2rem 1.25rem;
-        }
+       
       `}</style>
     </>
   )
