@@ -1,4 +1,4 @@
-import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup, Modal,
+import { Box, Button, Text, Flex, Input, InputRightElement, InputGroup, Tag, TagLabel, TagIcon, CircularProgress, Modal,
   ModalOverlay,
   ModalContent,
   ModalFooter,
@@ -17,14 +17,12 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
   const [editText, setEditText]= useState(false)
   const [questionText, setQuestionText] = useState(question.text)
 
-
   let questionTimestamp = moment.unix(question.timestamp).format("MM/DD/YYYY h:mm:ss a");
 
   // HANDLERS HANDLERS
   const handleAnswerSubmit = (questionId) => {
 
     let _questions = [...questions]
-
     //Get Clicked question and move it to setAnswerInModal with timestamps
     let matchedQuestion = _questions.find(_question => { return _question.id === questionId })
     matchedQuestion.receivedAt =  questionTimestamp
@@ -44,17 +42,11 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
 
     //open modal 
     onOpen(true)
-
-    // //Quit clicked question from questions context
-    // let newQuestions = questions.filter(question => { return question.id !== questionId })
-    // setQuestions(newQuestions)
   }
 
   const handleFinishAnswer = () => {
-    console.log("handleFinishAnswer!!!")
     let answeredQuestion = {...answerInModal}
     answeredQuestion.answerEnds = moment().format("MM/DD/YYYY h:mm:ss a")
-    console.log(" =>", answeredQuestion)
 
     let streamStartTime = moment(answeredQuestion.streamStartedAt)
     let answerStartTime = moment(answeredQuestion.answerStarts)
@@ -73,9 +65,22 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
 
     console.log("DATA TO API =>", data)
 
-    //SEND TO API HERE!
+    //TODO: SEND TO API HERE!
+
     //UPDATE QUESTIONS ON CONTEXT
+    let _questions = [...questions]
+    let newQuestion = _questions.find(_question => {
+      return _question.id === answeredQuestion.id
+    })
+
+    newQuestion.answered = true
+    setQuestions(_questions)
     onClose(true)    
+  }
+
+  const handleDeleteQuestion = questionId => {
+    let newQuestions = [...questions].filter(question => { return question.id !== questionId })
+    setQuestions(newQuestions)
   }
 
   return ( 
@@ -91,17 +96,27 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
             </>
          </Box>
 
-
          <Flex direction="row" align="flex-end">
            <Box mt={0}>
-             <Button ml={2} mt={1} variantColor="pink" size="sm" onClick={() => {handleAnswerSubmit(question.id)}}>
-              Answer
-             </Button>
+             {question.answered ? (
+               <Tag variantColor="cyan">
+                  <TagLabel>Answered</TagLabel>
+                  <TagIcon icon="check" size="12px" />
+                </Tag>
+             ): (
+               <>
+               <Button ml={2} mt={1} variantColor="pink" size="sm"  onClick={() => {handleAnswerSubmit(question.id)}}>
+                {answerInModal ? ( <CircularProgress isIndeterminate size="24px" color="teal" /> ) : ( 'Answer' )}
+                </Button>
+                <Button ml={2} mt={1} variantColor="pink" size="sm"  onClick={() => {handleDeleteQuestion(question.id)}}>
+                 Delete
+                </Button>
+               </>
+             )}
            </Box>
          </Flex>
        </Box>
      </Flex>
-
 
     {answerInModal && (
         <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
@@ -117,7 +132,7 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
             </Box> 
           </ModalBody>
           <ModalFooter>
-            <Button variantColor="blue" mr={3} onClick={() => {handleFinishAnswer()}}>
+            <Button variantColor="cyan" mr={3} onClick={() => {handleFinishAnswer()}}>
               Finish
             </Button>
           </ModalFooter>

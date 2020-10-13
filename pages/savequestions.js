@@ -49,6 +49,7 @@ const SaveQuestions = (props) => {
               timestamp: data.timestamp,
               source: data.payload.eventIdentifier,
               author: data.payload.eventPayload.author,
+              answered: false
             },
           ]);
         } else if (data.action === "reply_created"){
@@ -59,6 +60,7 @@ const SaveQuestions = (props) => {
               text: data.payload.text,
               timestamp: data.timestamp,
               source: data.payload.connectionIdentifiers[0],
+              answered: false,
               author: { displayName: "Me" }
             }
           ])
@@ -92,6 +94,8 @@ const SaveQuestions = (props) => {
             {questions.map(question => (
               <Question key={question.id} question={question} questions={questions} setQuestions={setQuestions} streamStartTimeStamp={streamStartTimeStamp}/>
             ))}
+
+            {questions.length === 0 && <Text>There's no Questions yet</Text>}
             </Flex>
           </Flex>
 
