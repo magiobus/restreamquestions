@@ -1,16 +1,17 @@
 import Layout from "../components/layout";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
-import { Text, Link, Flex, Box} from "@chakra-ui/core";
+import { Text, Link, Flex, Box, Input} from "@chakra-ui/core";
 import { useAuth } from "../lib/auth";
 import { v4 as uuidv4 } from 'uuid';
 import Question from '../components/question'
 
 const SaveQuestions = (props) => {
-  const { isAuthenticated, token, logout } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const [streamStartTimeStamp, SetstreamStartTimeStamp] = useState(null);
   const [chatConnected, setChatConnected] = useState(false);
   const [questions, setQuestions] = useState([])
+  const [sentApi, setSentApi] = useState('')
 
   //Connection to WEBSOCKET
   useEffect(() => {
@@ -88,11 +89,24 @@ const SaveQuestions = (props) => {
       {/* if is logged in and stream is  started */}
       {(isAuthenticated && streamStartTimeStamp !== null && chatConnected) && (
         <>
-        <Text my={5}><b>Stream started at: {streamStartTimeStamp} </b></Text>
+          <Flex width="100%" direction="column" align="center">
+            <Text mt={5}><b>Stream started at: {streamStartTimeStamp} </b></Text>
+            <Text mt={2} mb={4}>Info will be sent to: 
+              <Input width="100%" placeholder="Your API Route here" value={sentApi} onChange={e => setSentApi(e.target.value)}/>
+            </Text>
+          </Flex>
+
+
           <Flex width="100%" align="center" direction="row" justify="center">
             <Flex width={["90%", "90%", "60%", "50%"]} align="center"  borderWidth="1px" p={5} direction="column" bg="gray.50" borderColor="gray.00">
             {questions.map(question => (
-              <Question key={question.id} question={question} questions={questions} setQuestions={setQuestions} streamStartTimeStamp={streamStartTimeStamp}/>
+              <Question key={question.id} 
+                question={question} 
+                questions={questions} 
+                setQuestions={setQuestions} 
+                streamStartTimeStamp={streamStartTimeStamp}
+                sentApi={sentApi}
+                />
             ))}
 
             {questions.length === 0 && <Text>There's no Questions yet</Text>}

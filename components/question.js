@@ -9,7 +9,7 @@ import moment from 'moment'
 import ms from 'ms'
 
 
-const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => {
+const Question = ({question, questions, setQuestions, streamStartTimeStamp,sentApi}) => {
   const { isOpen, onOpen, onClose } = useDisclosure(); 
   const [answerInModal, setAnswerInModal] = useState(null);
   const [answeringDuration, setAnsweringDuration] = useState(0) //counter
@@ -61,9 +61,8 @@ const Question = ({question, questions, setQuestions, streamStartTimeStamp}) => 
       duration: answeringDuration
     }
 
-    console.log("DATA TO API =>", data)
-
     //TODO: SEND TO API HERE!
+    console.log("DATA TO API URL=>", sentApi, data)
 
     //UPDATE QUESTIONS ON CONTEXT
     let _questions = [...questions]
